@@ -1,2 +1,2 @@
 # Study materials and source code for **Droidcon Academy** course 
-> # Add Course Name 
+> # Kickstart Your Android Journey by Building Your First Android Application with Jetpack Compose  
