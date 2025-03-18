@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -31,19 +33,29 @@ class MainActivity : ComponentActivity() {
 
                     val notesViewModel: NotesViewModel = viewModel()
 
+                    val notes by notesViewModel.notes.collectAsState()
+
                     NavHost(
                         navController = navController,
                         startDestination = "home"
                     ) {
+                        // Home screen with note list
                         composable("home") {
                             HomeScreen(
-                                viewModel = notesViewModel,
-                                onNavigateToEdit = { noteId ->
+                                notes = notes,
+                                onAddNote = { content ->
+                                    notesViewModel.addNote(content)
+                                },
+                                onDeleteNote = { id ->
+                                    notesViewModel.deleteNote(id)
+                                },
+                                onNoteClick = { noteId ->
                                     navController.navigate("edit/$noteId")
                                 }
                             )
                         }
 
+                        // Edit note screen
                         composable(
                             route = "edit/{noteId}",
                             arguments = listOf(
@@ -54,9 +66,14 @@ class MainActivity : ComponentActivity() {
                         ) { backStackEntry ->
                             val noteId = backStackEntry.arguments?.getString("noteId") ?: ""
 
+                            val noteContent = notesViewModel.getNoteById(noteId)?.content ?: ""
+
                             EditNoteScreen(
                                 noteId = noteId,
-                                viewModel = notesViewModel,
+                                initialContent = noteContent,
+                                onUpdateNote = { id, content ->
+                                    notesViewModel.updateNote(id, content)
+                                },
                                 onBackClick = {
                                     navController.popBackStack()
                                 }

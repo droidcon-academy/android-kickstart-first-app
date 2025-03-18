@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -30,25 +31,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import android.content.Context
-import android.content.Intent
-import com.droidcon.quicknotes.viewmodel.NotesViewModel
+import com.droidcon.quicknotes.util.shareNote
 
 
 @Composable
 fun EditNoteScreen(
     noteId: String,
-    viewModel: NotesViewModel,
+    initialContent: String,
+    onUpdateNote: (String, String) -> Unit,
     onBackClick: () -> Unit
 ) {
     var noteText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
 
-    LaunchedEffect(noteId) {
-        viewModel.getNoteById(noteId)?.let { note ->
-            noteText = note.content
-        }
+    LaunchedEffect(initialContent) {
+        noteText = initialContent
     }
 
     Scaffold { padding ->
@@ -82,7 +80,6 @@ fun EditNoteScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    // Empty space to balance the back button
                     IconButton(onClick = {}) {
                         Spacer(modifier = Modifier.width(24.dp))
                     }
@@ -91,28 +88,29 @@ fun EditNoteScreen(
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 OutlinedTextField(
                     value = noteText,
                     onValueChange = { noteText = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .height(200.dp), // Fixed height instead of weight
                     label = { Text("Note content") }
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
                         onClick = {
                             if (noteText.isNotBlank()) {
-                                viewModel.updateNote(noteId, noteText)
+                                onUpdateNote(noteId, noteText)
                                 onBackClick()
                             }
                         },
@@ -151,16 +149,4 @@ fun EditNoteScreen(
             }
         }
     }
-}
-
-private fun shareNote(context: Context, noteContent: String) {
-    val shareIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, noteContent)
-        type = "text/plain"
-    }
-
-    val chooserIntent = Intent.createChooser(shareIntent, "Share Note")
-
-    context.startActivity(chooserIntent)
 }

@@ -1,7 +1,5 @@
 package com.droidcon.quicknotes.ui
 
-import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +17,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,16 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.droidcon.quicknotes.viewmodel.NotesViewModel
+import com.droidcon.quicknotes.data.Note
+import com.droidcon.quicknotes.util.shareNote
 
 
 @Composable
 fun HomeScreen(
-    viewModel: NotesViewModel,
-    onNavigateToEdit: (String) -> Unit
+    notes: List<Note>,
+    onAddNote: (String) -> Unit,
+    onDeleteNote: (String) -> Unit,
+    onNoteClick: (String) -> Unit
 ) {
-    val notes by viewModel.notes.collectAsState()
-
     var newNoteText by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -82,7 +80,7 @@ fun HomeScreen(
                 Button(
                     onClick = {
                         if (newNoteText.isNotBlank()) {
-                            viewModel.addNote(newNoteText)
+                            onAddNote(newNoteText)
                             newNoteText = ""
                         }
                     }
@@ -104,10 +102,10 @@ fun HomeScreen(
                     NoteItem(
                         note = note,
                         onNoteClick = { clickedNote ->
-                            onNavigateToEdit(clickedNote.id)
+                            onNoteClick(clickedNote.id)
                         },
                         onDeleteClick = { noteToDelete ->
-                            viewModel.deleteNote(noteToDelete.id)
+                            onDeleteNote(noteToDelete.id)
                         },
                         onShareClick = { noteToShare ->
                             shareNote(context, noteToShare.content)
@@ -117,17 +115,4 @@ fun HomeScreen(
             }
         }
     }
-}
-
-
-private fun shareNote(context: Context, noteContent: String) {
-    val shareIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        putExtra(Intent.EXTRA_TEXT, noteContent)
-        type = "text/plain"
-    }
-
-    val chooserIntent = Intent.createChooser(shareIntent, "Share Note")
-
-    context.startActivity(chooserIntent)
 }
