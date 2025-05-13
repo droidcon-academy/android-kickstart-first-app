@@ -1,5 +1,6 @@
 package com.droidcon.quicknotes.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -97,7 +98,7 @@ fun EditNoteScreen(
                     onValueChange = { noteText = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp), // Fixed height instead of weight
+                        .height(200.dp),
                     label = { Text("Note content") }
                 )
 
